@@ -20,8 +20,14 @@ MongoClient.connect('mongodb://localhost:27017/curdtest', (err, database) => {
 	app.get('/',(req,res)=>{
 		res.sendFile(`${__dirname}/index.html`);
 	});
+	app.get('/quotes',(req,res)=>{
+		req.db.collection('quotescollection').find().toArray((err,results)=>{
+			if (err) res.end(500,"No Quotes record found");
+			res.send(results);
+		});
+	})
 	app.post('/quotes', (req, res) => {
-		req.db.collection('usercollection').save(req.body,(err,result)=>{
+		req.db.collection('quotescollection').save(req.body,(err,result)=>{
 			if (err) return console.log(err);
 			console.log('saved to database');
 			res.redirect('/')
