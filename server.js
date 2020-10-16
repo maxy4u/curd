@@ -1,44 +1,25 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const MongoClient = require('mongodb').MongoClient ;
+const mongoose = require('mongoose');
+const user = require('./routes/user');
 const app = express();
-var db;
 
-app.use(bodyParser.urlencoded({extended:true}));
+//Middlewares
+app.use(express.json());
+app.use(cors());
 
-MongoClient.connect('mongodb://localhost:27017/curdtest', (err, database) => {
-	debugger;
-  // ... start the server
-  if (err) return console.log(err);
-  db = database;
-  	// make our db accessible via req
-  	app.use((req,res,next)=>{
-  		req.db = db ;
-  		next();
-  	})
+mongoose.connect(
+	'mongodb://localhost:27017/curdtest',
+	{
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+		useCreateIndex: true,
+		useFindAndModify: false
+	},
+	() => console.log('connect to db')
+);
 
-	app.get('/',(req,res)=>{
-		res.sendFile(`${__dirname}/index.html`);
-	});
-	app.get('/quotes',(req,res)=>{
-		req.db.collection('quotescollection').find().toArray((err,results)=>{
-			if (err) res.end(500,"No Quotes record found");
-			res.send(results);
-		});
-	})
-	app.post('/quotes', (req, res) => {
-		req.db.collection('quotescollection').save(req.body,(err,result)=>{
-			if (err) return console.log(err);
-			console.log('saved to database');
-			res.redirect('/')
-		})
-	  	console.log(req.body);
-	});
-	app.listen(3000,function(){
-		console.log('server is listening at 3000 port');
-	});
+app.use('/', user);
 
+app.listen(3000, () => {
+	console.log('server is listening at 3000 port');
 });
-
-
-
